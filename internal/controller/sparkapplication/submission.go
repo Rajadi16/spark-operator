@@ -28,7 +28,6 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/kubeflow/spark-operator/v2/api/v1beta2"
@@ -1177,6 +1176,9 @@ func buildDriverPodTemplate(app *v1beta2.SparkApplication) *corev1.PodTemplateSp
 	}) {
 		template.OwnerReferences = append(template.OwnerReferences, ownerReference)
 	}
+
+	// Copy custom SchedulingGroup to native Kubernetes PodSpec field for workload scheduler.
+
 	return template
 }
 
@@ -1207,6 +1209,9 @@ func buildExecutorPodTemplate(app *v1beta2.SparkApplication) *corev1.PodTemplate
 	}) {
 		template.OwnerReferences = append(template.OwnerReferences, ownerReference)
 	}
+
+	// Copy custom SchedulingGroup to native Kubernetes PodSpec field for workload scheduler.
+
 	return template
 }
 
