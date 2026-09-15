@@ -389,6 +389,47 @@ int32
 <td></td>
 </tr></tbody>
 </table>
+<h3 id="sparkoperator.k8s.io/v1alpha1.GPUSpec">GPUSpec
+</h3>
+<p>
+(<em>Appears on:</em><a href="#sparkoperator.k8s.io/v1alpha1.SparkPodSpec">SparkPodSpec</a>)
+</p>
+<div>
+<p>GPUSpec defines GPU resources for a Spark Connect server or executor.</p>
+</div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>name</code><br/>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name is the Kubernetes GPU resource name, such as nvidia.com/gpu or amd.com/gpu.
+The vendor domain is used for Spark&rsquo;s GPU resource vendor configuration.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>quantity</code><br/>
+<em>
+int64
+</em>
+</td>
+<td>
+<p>Quantity is the number of GPUs to request for each pod.</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="sparkoperator.k8s.io/v1alpha1.ServerSpec">ServerSpec
 </h3>
 <p>
@@ -790,6 +831,21 @@ string
 <td>
 <em>(Optional)</em>
 <p>Memory is the amount of memory to request for the pod.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>gpu</code><br/>
+<em>
+<a href="#sparkoperator.k8s.io/v1alpha1.GPUSpec">
+GPUSpec
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>GPU specifies GPU resources for the pod and Spark resource scheduler.
+GPU discovery and per-task resource settings are configured through SparkConf.</p>
 </td>
 </tr>
 <tr>

@@ -37,6 +37,7 @@ func buildStartConnectServerArgs(conn *v1alpha1.SparkConnect) ([]string, error) 
 		hadoopConfOption,
 		driverConfOption,
 		executorConfOption,
+		gpuConfOption,
 		executorPodTemplateOption,
 		dynamicAllocationOption,
 	}
@@ -234,12 +235,13 @@ func executorConfOption(conn *v1alpha1.SparkConnect) ([]string, error) {
 
 // executorPodTemplateOption returns the executor pod template arguments.
 func executorPodTemplateOption(conn *v1alpha1.SparkConnect) ([]string, error) {
-	if conn.Spec.Executor.Template == nil {
+	template := executorPodTemplate(conn)
+	if template == nil {
 		return []string{}, nil
 	}
 
 	podTemplateFile := fmt.Sprintf("/tmp/spark/%s", ExecutorPodTemplateFileName)
-	if err := util.WriteObjectToFile(conn.Spec.Executor.Template, podTemplateFile); err != nil {
+	if err := util.WriteObjectToFile(template, podTemplateFile); err != nil {
 		return []string{}, err
 	}
 

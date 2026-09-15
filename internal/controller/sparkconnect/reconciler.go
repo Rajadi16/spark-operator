@@ -283,7 +283,7 @@ func (r *Reconciler) mutateConfigMap(_ context.Context, conn *v1alpha1.SparkConn
 		return fmt.Errorf("failed to set controller reference")
 	}
 
-	podTemplateData, err := yaml.Marshal(conn.Spec.Executor.Template)
+	podTemplateData, err := yaml.Marshal(executorPodTemplate(conn))
 	if err != nil {
 		return fmt.Errorf("failed to marshal executor pod template: %v", err)
 	}
@@ -349,7 +349,7 @@ func (r *Reconciler) createOrUpdateServerPod(ctx context.Context, conn *v1alpha1
 func (r *Reconciler) mutateServerPod(ctx context.Context, conn *v1alpha1.SparkConnect, pod *corev1.Pod) error {
 	// Server pod not created yet.
 	if pod.CreationTimestamp.IsZero() {
-		template := conn.Spec.Server.Template
+		template := conn.Spec.Server.Template.DeepCopy()
 		if template != nil {
 			pod.Labels = template.Labels
 			pod.Annotations = template.Annotations
@@ -376,6 +376,7 @@ func (r *Reconciler) mutateServerPod(ctx context.Context, conn *v1alpha1.SparkCo
 			pod.Spec.Containers,
 			common.SparkDriverContainerName,
 		)
+		setGPUResources(container, conn.Spec.Server.GPU)
 		// Setup image.
 		if container.Image == "" {
 			if conn.Spec.Image == nil || *conn.Spec.Image == "" {
