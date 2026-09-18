@@ -479,7 +479,7 @@ func schema_spark_operator_v2_api_v1alpha1_GPUSpec(ref common.ReferenceCallback)
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "GPUSpec defines GPU resources for a Spark Connect server or executor.",
+				Description: "GPUSpec defines GPU resources for a Spark Connect server or executor.\n\nName must have the form <vendor-domain>/gpu (e.g. nvidia.com/gpu or amd.com/gpu). gpuConfOption splits on \"/\" to derive the vendor string for spark.{driver,executor}.resource.gpu.vendor and validates that the suffix is \"gpu\". Quantity must be positive; both constraints are also enforced at admission by the kubebuilder markers below. The v1beta2.GPUSpec in SparkApplication carries no equivalent kubebuilder constraints; this PR leaves that API unchanged to avoid widening its compatibility impact.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"name": {

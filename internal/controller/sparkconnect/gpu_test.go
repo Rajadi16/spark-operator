@@ -96,7 +96,7 @@ var _ = Describe("Spark Connect GPU support", func() {
 		Expect(command).To(ContainSubstring("spark.kubernetes.executor.podTemplateFile="))
 		Expect(pod.Spec.Containers[0].Resources.Limits).NotTo(HaveKey(corev1.ResourceName("nvidia.com/gpu")))
 
-		// Typed GPU settings follow SparkConf, as do the existing cores/memory settings.
+		// Typed GPU settings override the same keys in sparkConf.
 		args, err := sparkConfOption(conn)
 		Expect(err).NotTo(HaveOccurred())
 		gpuArgs, err := gpuConfOption(conn)

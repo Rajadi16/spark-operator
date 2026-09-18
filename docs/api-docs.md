@@ -396,6 +396,13 @@ int32
 </p>
 <div>
 <p>GPUSpec defines GPU resources for a Spark Connect server or executor.</p>
+<p>Name must have the form <vendor-domain>/gpu (e.g. nvidia.com/gpu or
+amd.com/gpu). gpuConfOption splits on &ldquo;/&rdquo; to derive the vendor string for
+spark.{driver,executor}.resource.gpu.vendor and validates that the suffix
+is &ldquo;gpu&rdquo;. Quantity must be positive; both constraints are also enforced at
+admission by the kubebuilder markers below. The v1beta2.GPUSpec in
+SparkApplication carries no equivalent kubebuilder constraints; this PR
+leaves that API unchanged to avoid widening its compatibility impact.</p>
 </div>
 <table>
 <thead>

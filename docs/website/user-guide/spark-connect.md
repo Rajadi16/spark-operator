@@ -142,7 +142,9 @@ Set `.spec.executor.gpu` to run GPU workloads on executors. Set
 `.spec.server.gpu` only when the Connect server itself also needs a GPU.
 Each GPU specification requires a `name` in the form `<vendor-domain>/gpu`
 (for example, `nvidia.com/gpu` or `amd.com/gpu`) and a positive integer
-`quantity`.
+`quantity`. This typed field maps the vendor portion to
+`spark.{driver,executor}.resource.gpu.vendor`, so the name must contain a
+`/gpu` suffix and a valid DNS subdomain as the vendor.
 
 The operator sets matching GPU requests and limits on the selected container
 and supplies `spark.executor.resource.gpu.amount` and
@@ -151,6 +153,16 @@ and supplies `spark.executor.resource.gpu.amount` and
 over the same GPU resource's requests/limits in the pod template and its
 amount/vendor settings in `sparkConf`. Other container resources and sidecars
 are preserved.
+
+:::{note}
+GPU settings for the server pod are applied only when the server pod is first
+created. If you edit `.spec.server.gpu` on an already-running `SparkConnect`,
+the change does not take effect until the server pod is recreated. To apply
+updated GPU settings, delete the `SparkConnect` and create a new one, or
+delete the server pod directly and let the operator recreate it. Recreating
+the server pod interrupts all active client sessions; clients must reconnect
+after the new pod becomes ready.
+:::
 
 Your cluster must have GPU nodes and the appropriate Kubernetes device plugin.
 Use a Spark image with the GPU libraries needed by your workload and an
