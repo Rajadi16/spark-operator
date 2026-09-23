@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"strings"
 
+	"k8s.io/apimachinery/pkg/util/validation"
+
 	"github.com/kubeflow/spark-operator/v2/api/v1alpha1"
 	"github.com/kubeflow/spark-operator/v2/pkg/common"
 	"github.com/kubeflow/spark-operator/v2/pkg/util"
@@ -233,15 +235,42 @@ func executorConfOption(conn *v1alpha1.SparkConnect) ([]string, error) {
 	return args, nil
 }
 
+// gpuConfOption configures Spark's resource scheduler in addition to pod resources.
+func gpuConfOption(conn *v1alpha1.SparkConnect) ([]string, error) {
+	var args []string
+	for _, role := range []struct {
+		name string
+		gpu  *v1alpha1.GPUSpec
+	}{
+		{name: "driver", gpu: conn.Spec.Server.GPU},
+		{name: "executor", gpu: conn.Spec.Executor.GPU},
+	} {
+		if role.gpu == nil {
+			continue
+		}
+		vendor, name, ok := strings.Cut(role.gpu.Name, "/")
+		if !ok || name != "gpu" || len(validation.IsDNS1123Subdomain(vendor)) != 0 {
+			return nil, fmt.Errorf("%s GPU resource name must have the form <vendor-domain>/gpu, got %q", role.name, role.gpu.Name)
+		}
+		if role.gpu.Quantity <= 0 {
+			return nil, fmt.Errorf("%s GPU quantity must be positive, got %d", role.name, role.gpu.Quantity)
+		}
+		args = append(args,
+			"--conf", fmt.Sprintf("spark.%s.resource.gpu.amount=%d", role.name, role.gpu.Quantity),
+			"--conf", fmt.Sprintf("spark.%s.resource.gpu.vendor=%s", role.name, vendor),
+		)
+	}
+	return args, nil
+}
+
 // executorPodTemplateOption returns the executor pod template arguments.
 func executorPodTemplateOption(conn *v1alpha1.SparkConnect) ([]string, error) {
-	template := executorPodTemplate(conn)
-	if template == nil {
+	if conn.Spec.Executor.Template == nil {
 		return []string{}, nil
 	}
 
 	podTemplateFile := fmt.Sprintf("/tmp/spark/%s", ExecutorPodTemplateFileName)
-	if err := util.WriteObjectToFile(template, podTemplateFile); err != nil {
+	if err := util.WriteObjectToFile(conn.Spec.Executor.Template, podTemplateFile); err != nil {
 		return []string{}, err
 	}
 

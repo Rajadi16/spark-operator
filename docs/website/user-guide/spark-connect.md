@@ -146,13 +146,17 @@ Each GPU specification requires a `name` in the form `<vendor-domain>/gpu`
 `spark.{driver,executor}.resource.gpu.vendor`, so the name must contain a
 `/gpu` suffix and a valid DNS subdomain as the vendor.
 
-The operator sets matching GPU requests and limits on the selected container
-and supplies `spark.executor.resource.gpu.amount` and
-`spark.executor.resource.gpu.vendor`. Server GPUs use the corresponding
-`spark.driver.resource.gpu.*` properties. These typed settings take precedence
-over the same GPU resource's requests/limits in the pod template and its
-amount/vendor settings in `sparkConf`. Other container resources and sidecars
-are preserved.
+The operator passes `spark.executor.resource.gpu.amount` and
+`spark.executor.resource.gpu.vendor` to Spark, which translates them into GPU
+limits on the executor pods. Server GPUs use the corresponding
+`spark.driver.resource.gpu.*` properties, and the operator also sets matching
+GPU requests and limits on the server container. These typed settings take
+precedence over the amount/vendor settings in `sparkConf`. Other container
+resources and sidecars in the pod templates are preserved.
+
+GPU resource names whose suffix is not `gpu` (for example, MIG profiles) are
+not supported by this field. Configure them through the pod template and
+`sparkConf` instead.
 
 :::{note}
 GPU settings for the server pod are applied only when the server pod is first
@@ -167,7 +171,13 @@ after the new pod becomes ready.
 Your cluster must have GPU nodes and the appropriate Kubernetes device plugin.
 Use a Spark image with the GPU libraries needed by your workload and an
 executable discovery script that reports the GPUs allocated to its container.
-Configure discovery and per-task GPU use in `sparkConf`, for example:
+Spark cannot start a GPU-enabled server or executor without a way to discover
+its GPUs, so the operator rejects a `SparkConnect` that sets `.spec.server.gpu`
+or `.spec.executor.gpu` without the matching discovery configuration in
+`sparkConf`: `spark.driver.resource.gpu.discoveryScript` for the server,
+`spark.executor.resource.gpu.discoveryScript` for executors, or
+`spark.resources.discoveryPlugin` for both. Configure discovery and per-task
+GPU use in `sparkConf`, for example:
 
 ```yaml
 apiVersion: sparkoperator.k8s.io/v1alpha1
